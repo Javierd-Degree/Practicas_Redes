@@ -1,7 +1,7 @@
 /***************************************************************************
 Ejercicio1P1.c
  TODO
- Compila: gcc -Wall -o EjemploPcapP1 EjemploPcapP1.c -lpcap
+ Compila: gcc -Wall -o Ej1P1 Ej1.c -lpcap
  Autor: Javier Delgado del Cerro, Javier López Cano
  2018 EPS-UAM
 ***************************************************************************/
@@ -21,7 +21,7 @@ Ejercicio1P1.c
 #include <time.h>
 #define ERROR 1
 #define OK 0
-#define INTERFACE "eth0"
+#define INTERFACE "wlp1s0"
 
 #define ETH_FRAME_MAX 1514	// Tamano maximo trama ethernet
 
@@ -46,22 +46,28 @@ void fa_nuevo_paquete(uint8_t *usuario, const struct pcap_pkthdr* cabecera, cons
   int i;
 	(*num_paquete)++;
 
-  cabecera->ts.tv_sec += 1800;
-  //TODO COPIAR LA CABECERA Y MODIFICAR LA COPIA
-	printf("Nuevo paquete capturado a las %s\n",ctime((const time_t*)&(cabecera->ts.tv_sec)));
+  struct timeval ntime;
+  ntime.tv_sec = cabecera->ts.tv_sec + 1800;
+  ntime.tv_usec = cabecera->ts.tv_usec;
+  struct pcap_pkthdr ccabecera;
+  ccabecera.caplen = cabecera->caplen;
+  ccabecera.len = cabecera->len;
+  ccabecera.ts = ntime;
+
+	printf("Nuevo paquete capturado a las %s\n",ctime((const time_t*)&(ccabecera.ts.tv_sec)));
   printf("Los %d primeros bytes del paquete son:\n", numPaquetes);
   for(i = 0; i < numPaquetes; i++){
     printf("%x ", paquete[i]);
   }
 
 	if(pdumper){
-		pcap_dump((uint8_t *)pdumper, cabecera, paquete);
+		pcap_dump((uint8_t *)pdumper, &ccabecera, paquete);
 	}
 }
 
 int main(int argc, char **argv)
 {
-	int retorno=0, numPaquetes;
+	int retorno=0;
 	char errbuf[PCAP_ERRBUF_SIZE];
 	char file_name[256];
 	struct timeval time;
@@ -87,6 +93,7 @@ int main(int argc, char **argv)
   }
 
   numPaquetes = atoi(argv[1]);
+  printf("Numero de paquetes a leer: %d\n", numPaquetes);
 
 	if(signal(SIGINT,handle)==SIG_ERR){
 		printf("Error: Fallo al capturar la senal SIGINT.\n");
