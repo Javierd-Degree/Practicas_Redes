@@ -21,7 +21,7 @@ Ejercicio1P1.c
 #include <time.h>
 #define ERROR 1
 #define OK 0
-#define INTERFACE "wlp1s0"
+#define INTERFACE "wlp5s0"
 
 #define ETH_FRAME_MAX 1514	// Tamano maximo trama ethernet
 
@@ -54,11 +54,12 @@ void fa_nuevo_paquete(uint8_t *usuario, const struct pcap_pkthdr* cabecera, cons
   ccabecera.len = cabecera->len;
   ccabecera.ts = ntime;
 
-	printf("Nuevo paquete capturado a las %s\n",ctime((const time_t*)&(ccabecera.ts.tv_sec)));
+	printf("Nuevo paquete capturado a las %s",ctime((const time_t*)&(ccabecera.ts.tv_sec)));
   printf("Los %d primeros bytes del paquete son:\n", numPaquetes);
   for(i = 0; i < numPaquetes; i++){
-    printf("%x ", paquete[i]);
+    printf("%02x ", paquete[i]);
   }
+  printf("\n\n");
 
 	if(pdumper){
 		pcap_dump((uint8_t *)pdumper, &ccabecera, paquete);
@@ -74,7 +75,7 @@ int main(int argc, char **argv)
 
 
   if(argc == 1){
-    printf("Número de argumentos incorrecto:\n\t-Ejecuta con un único argumento, el número de paquetes a capturar, si quieres capturar de interfaz.\n\t-Ejecuta con dos argumentos, el número de paquetes y al archivo de una traza, para analizar dicha traza pcap.");
+    printf("Número de argumentos incorrecto:\n\t-Ejecuta con un único argumento, el número de paquetes a capturar, si quieres capturar de interfaz.\n\t-Ejecuta con dos argumentos, el número de paquetes y al archivo de una traza, para analizar dicha traza pcap.\n");
     exit(ERROR);
   }else if (argc == 2){
     //Apertura de interface
