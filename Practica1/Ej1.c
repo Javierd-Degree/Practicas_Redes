@@ -27,7 +27,7 @@ Ejercicio1P1.c
 
 pcap_t *descr = NULL,*descr2 = NULL;
 pcap_dumper_t *pdumper = NULL;
-int contador = 0, numPaquetes = 0;
+int contador = 0, numDigitos = 0;
 
 void handle(int nsignal){
 	printf("Control C pulsado\n");
@@ -55,9 +55,9 @@ void fa_nuevo_paquete(uint8_t *usuario, const struct pcap_pkthdr* cabecera, cons
   ccabecera.ts = ntime;
 
 	printf("Nuevo paquete capturado a las %s",ctime((const time_t*)&(ccabecera.ts.tv_sec)));
-  printf("Los %d primeros bytes del paquete son:\n", numPaquetes);
-  for(i = 0; i < numPaquetes; i++){
-    printf("%02x ", paquete[i]);
+  printf("Los %d primeros bytes del paquete son:\n", numDigitos);
+  for(i = 0; i < numDigitos; i++){
+    printf("%02X ", paquete[i]);
   }
   printf("\n\n");
 
@@ -93,8 +93,7 @@ int main(int argc, char **argv)
     }
   }
 
-  numPaquetes = atoi(argv[1]);
-  printf("Numero de paquetes a leer: %d\n", numPaquetes);
+  numDigitos = atoi(argv[1]);
 
 	if(signal(SIGINT,handle)==SIG_ERR){
 		printf("Error: Fallo al capturar la senal SIGINT.\n");
@@ -119,7 +118,7 @@ int main(int argc, char **argv)
 	}
 
 	//Se pasa el contador como argumento, pero sera mas comodo y mucho mas habitual usar variables globales
-	retorno = pcap_loop (descr,numPaquetes,fa_nuevo_paquete, (uint8_t*)&contador);
+	retorno = pcap_loop (descr, -1, fa_nuevo_paquete, (uint8_t*)&contador);
 	if(retorno == -1){ 		//En caso de error
 		printf("Error al capturar un paquete %s, %s %d.\n",pcap_geterr(descr),__FILE__,__LINE__);
 		pcap_close(descr);
