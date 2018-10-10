@@ -1,7 +1,6 @@
 /***************************************************************************
-Ejercicio1P1.c
- TODO
- Compila: gcc -Wall -o Ej1P1 Ej1.c -lpcap
+ Ej1.c
+ Compila: gcc -Wall -o Ej1P1 Ej1.c Ej1.h -lpcap
  Autor: Javier Delgado del Cerro, Javier López Cano
  2018 EPS-UAM
 ***************************************************************************/
@@ -10,20 +9,8 @@ Ejercicio1P1.c
 #include <config.h>
 #endif
 
-#include <stdio.h>
-#include <stdlib.h>
-#include <pcap.h>
-#include <string.h>
-#include <netinet/in.h>
-#include <linux/udp.h>
-#include <linux/tcp.h>
-#include <signal.h>
-#include <time.h>
-#define ERROR 1
-#define OK 0
-#define INTERFACE "wlp5s0"
+#include "Ej1.h"
 
-#define ETH_FRAME_MAX 1514	// Tamano maximo trama ethernet
 
 pcap_t *descr = NULL,*descr2 = NULL;
 pcap_dumper_t *pdumper = NULL;
