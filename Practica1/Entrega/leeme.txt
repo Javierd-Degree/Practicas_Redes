@@ -1,0 +1,15 @@
+Autores:
+	Javier Delgado del Cerro,
+	Javier López Cano
+
+Criterios de evaluación:
+	- Normativa de entrega cumplida en su totalidad: Realizado: Se han realizado todos los requisitos la normativa de entrega explicados en el enunciado de la práctica.
+	- Contar paquetes de una traza: Realizado: Se ha comprobado que los paquetes leidos coinciden con los mostrados en Wireshark.
+	- Contar paquetes de la interfaz de red: Realizado: Se ha comprobado que los paquetes leidos coinciden con los mostrados en Wireshark.
+	- Almacenar en una traza el tráfico capturado en vivo: Realizado: Se genera un archivo con la traza almacenada y se ha comprobado que los datos almacenados coinciden con los mostrados en Wireshark. Se incluye el fichero practica1captura2.png como demostracion.
+	- Modificar fecha correctamente: Realizado: Se ha comprobado que al leer datos de la traza almacenada la fecha habia sido correctamente modificada sumandole 30 minutos.
+	- Imprimir los N primeros bytes de un paquete y validarlo con Wireshark (captura de pantalla): Realizado: Se entregan junto con el resto de archivos las capturas de pantalla practica1captura.png y practica1captura2.png para validar esto.
+	- Cuestionario "Ejercicios de captura de tráfico": Realizado: Se entrega junto con el resto de archivos un pdf con las respuestas a estas cuestiones.
+
+Adicional:
+	Tenemos los ficheros de las trazas generadas en los ejercicio 1 y 2 (con o sin filtro), de los ejercicios de captura de tráfico, sin embargo, las tres trazas juntas pesan más de 12mb, a pesar de comprimirlo, por lo que no podemos subirlas a moodle (el máximo son 5mb). En caso de requerirlas, contactar con uno de los miembros de la pareja y las enviaremos por email.
