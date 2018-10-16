@@ -10,6 +10,7 @@
 #endif
 
 #include "Ej1.h"
+#include <pcap.h>
 
 
 pcap_t *descr = NULL,*descr2 = NULL;
