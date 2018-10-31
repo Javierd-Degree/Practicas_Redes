@@ -2,7 +2,7 @@
 
 ### Apartado 1
 
-Hemos seguido las instrucciones dadas al pie de la letra y hemos analizado superficialmente el tráfico capturado por wireshark al ejecutar `sudo hping3 -S -p 80 www.ua.es`, lo hemos guardado en un archivo (tras deshabilitar el formato pcap-ng en las opciones de wireshark), y lo hemos vuelto a abrir para ver que se conservaba la integridad de los datos.
+Hemos seguido las instrucciones dadas al pie de la letra y hemos analizado superficialmente el tráfico capturado por wireshark al ejecutar `sudo hping3 -S -p 80 www.uam.es`, lo hemos guardado en un archivo (tras deshabilitar el formato pcap-ng en las opciones de wireshark), y lo hemos vuelto a abrir para ver que se conservaba la integridad de los datos.
 
 Hemos añadido también las columnas PO y PD desde **Edit>Preferences>Columns**, para comprobar que hay un único paquete con campo PO=53.
 
@@ -29,7 +29,6 @@ Para añadir la columna pedida, una vez abierto Wireshark, **Edit>Preferences>Co
 
 ### Apartado 4
 
-Para la versión para humanos: Edit>Preferences>Columns elegimos la columna Time, y el campo properties inferior, selegimos e FieldType UTC Time
 Para cambiar la visualización de la fecha, **View>Time display format** y seleccionamos **Time of day** para el primer apartado, con la visualización para humanos, o **Seconds since Epoch (1970-01-01)** para la visualización en segundos desde el 1 de enero de 1970.
 
 ### Apartado 5
