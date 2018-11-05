@@ -23,15 +23,17 @@
 #include <getopt.h>
 #include <inttypes.h>
 
-/*Definicion de constantes *************************************************/
-#define ETH_ALEN      6      /* Tamanio de la direccion ethernet           */
-#define ETH_HLEN      14     /* Tamanio de la cabecera ethernet            */
-#define ETH_TLEN      2      /* Tamanio del campo tipo ethernet            */
-#define ETH_FRAME_MAX 1514   /* Tamanio maximo la trama ethernet (sin CRC) */
-#define ETH_FRAME_MIN 60     /* Tamanio minimo la trama ethernet (sin CRC) */
+/*Definicion de constantes **************************************************/
+#define ETH_ALEN      6      /* Tamanio de la direccion ethernet           	*/
+#define ETH_HLEN      14     /* Tamanio de la cabecera ethernet            	*/
+#define ETH_TLEN      2      /* Tamanio del campo tipo ethernet            	*/
+#define ETH_FRAME_MAX 1514   /* Tamanio maximo la trama ethernet (sin CRC) 	*/
+#define ETH_FRAME_MIN 60     /* Tamanio minimo la trama ethernet (sin CRC) 	*/
 #define ETH_DATA_MAX  (ETH_FRAME_MAX - ETH_HLEN) /* Tamano maximo y minimo de los datos de una trama ethernet*/
 #define ETH_DATA_MIN  (ETH_FRAME_MIN - ETH_HLEN)
 #define IP_ALEN 4			/* Tamanio de la direccion IP					*/
+#define IP_TCP 6			/* Campo protocolo IP cuando es tcp 			*/
+#define IP_UDP 17			/* Campo protocolo IP cuando es udp 			*/
 #define OK 0
 #define ERROR 1
 #define PACK_READ 1
@@ -214,11 +216,15 @@ int main(int argc, char **argv)
 void analizar_paquete(u_char *user,const struct pcap_pkthdr *hdr, const uint8_t *pack)
 {
 	(void)user;
-	printf("Nuevo paquete capturado el %s\n", ctime((const time_t *) & (hdr->ts.tv_sec)));
-	contador++;
+	const uint8_t *prev;
 	int i = 0;
-	int protocolo1; //Cambiar
-	printf("Direccion ETH destino= ");
+	int protocoloETH, headerLen, totalLen, posicion, protocoloIP, puertoOrigen, puertoDestino;
+
+	contador++;
+	printf("Nuevo paquete capturado el %s", ctime((const time_t *) & (hdr->ts.tv_sec)));
+
+	/*Campos de nivel 2*/
+	printf("Direccion ETH destino: ");
 	printf("%02X", pack[0]);
 
 	for (i = 1; i < ETH_ALEN; i++) {
@@ -228,7 +234,7 @@ void analizar_paquete(u_char *user,const struct pcap_pkthdr *hdr, const uint8_t 
 	printf("\n");
 	pack += ETH_ALEN;
 
-	printf("Direccion ETH origen = ");
+	printf("Direccion ETH origen: ");
 	printf("%02X", pack[0]);
 
 	for (i = 1; i < ETH_ALEN; i++) {
@@ -237,14 +243,82 @@ void analizar_paquete(u_char *user,const struct pcap_pkthdr *hdr, const uint8_t 
 
 	printf("\n");
 	
-	printf("Protocolo = ");
-	pack+=ETH_ALEN;  // todo Javi aqui tiene que ponetr un bucle
-	printf("0x%02X%02X",pack[0],pack[1]);
-	protocolo1 = ntohs((uint16_t)pack[0]);
+	pack+=ETH_ALEN;
+	//printf("Protocolo ETH: 0x%02X%02X\n", pack[0], pack[1]);
+	protocoloETH = ntohs(*(uint16_t *)pack);
+	printf("Protocolo ETH: 0x%04X\n", protocoloETH);
 
- 	if(protocolo1 != 2048)
+ 	if(protocoloETH != 2048){
+ 		printf("El protocolo no es IPv4. Acaba el análisis de este paquete.\n\n\n");
 		return;
-	
+ 	}
+ 	pack+= ETH_TLEN;
+
+ 	/*Campos de nivel 3*/
+ 	prev = pack;
+ 	printf("Versión IP: %d\n", pack[0] >> 4);
+
+ 	headerLen = pack[0] & 15; /*Nos quedamos solo con los 4 últimos bits*/
+ 	headerLen = headerLen*4; /*Pasamos a bytes*/
+ 	printf("Longitud de cabecera: %d\n", headerLen);
+ 	pack += 1 + 1; /*Saltamos el tipo de servicio*/
+
+ 	totalLen = ntohs(*(uint16_t*)pack);
+ 	printf("Longitud total: %d\n", totalLen);
+ 	pack += 2 + 2; /*Saltamos identificación*/
+ 	
+ 	posicion = ntohs((*(uint16_t *)pack)) & 8191; /*Cogemos los 16 bits, y quitamos los 3 de flags*/
+ 	printf("Posición/Desplazamiento: %d\n", posicion); /* TODO NO FUNCIONA. Multiplicamos por 8*/
+	pack += 2;
+
+	printf("Tiempo de vida: %d\n", pack[0]);
+	protocoloIP = pack[1];
+	printf("Protocolo nivel 4: %d\n", protocoloIP);
+	pack += 2 + 2; /*Saltamos checksum*/
+
+	printf("Direccion IP destino: ");
+	printf("%d", pack[0]);
+	for (i = 1; i < IP_ALEN; i++) {
+		printf(".%d", pack[i]);
+	}
+	printf("\n");
+	pack += 4;
+
+	printf("Direccion IP origen: ");
+	printf("%d", pack[0]);
+	for (i = 1; i < IP_ALEN; i++) {
+		printf(".%d", pack[i]);
+	}
+	printf("\n");
+
+	/*TODO Si posición != 0, no seguimos analizando*/
+	if(posicion != 0){
+		printf("El paquete no tiene posición 0. Acaba el análisis de este paquete.\n\n\n");
+		return;
+	}
+
+	if(protocoloIP != IP_UDP &&  protocoloIP != IP_TCP){
+		printf("El paquete no es UDP ni TCP. Acaba el análisis de este paquete.\n\n\n");
+		return;
+	}
+
+	/*Campos de nivel 4*/
+	//Puertos de origen y destino
+	pack = prev + headerLen;
+	puertoOrigen = ntohs(*(uint16_t *)pack);
+	printf("Puerto origen: %d\n", puertoOrigen);
+	pack += 2;
+
+	puertoDestino = ntohs(*(uint16_t *)pack);
+	printf("Puerto destino: %d\n", puertoDestino);
+	pack += 2;
+
+	if(protocoloIP == IP_UDP){
+		printf("Logitud UDP: %d\n", ntohs(*(uint16_t *)pack));
+	}else if(protocoloIP == IP_TCP){
+		/*TODO Banderas SYN y FIN*/
+	}
+
 	
 	printf("\n\n");
 	
