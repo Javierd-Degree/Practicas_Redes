@@ -51,7 +51,7 @@ pcap_t *descr = NULL;
 uint64_t contador = 0;
 uint8_t ipsrc_filter[IP_ALEN] = {NO_FILTER};
 uint8_t ipdst_filter[IP_ALEN] = {NO_FILTER};
-uint16_t sport_filter= NO_FILTER;
+uint16_t sport_filter = NO_FILTER;
 uint16_t dport_filter = NO_FILTER;
 
 void handleSignal(int nsignal)
@@ -94,31 +94,29 @@ int main(int argc, char **argv)
 		{0, 0, 0, 0}
 	};
 
-	//Simple lectura por parametros por completar casos de error, ojo no cumple 100% los requisitos del enunciado!
+	/* Simple lectura por parametros por completar casos de error*/
 	while ((opt = getopt_long_only(argc, argv, "f:i:1:2:3:4:5", options, &long_index)) != -1) {
 		switch (opt) {
 		case 'i' :
-			if(descr) { // comprobamos que no se ha abierto ninguna otra interfaz o fichero
+			if(descr) { /* Comprobamos que no se ha abierto ninguna otra interfaz o fichero */
 				printf("Ha seleccionado más de una fuente de datos\n");
 				pcap_close(descr);
 				exit(ERROR);
 			}
 		
 		
-			if ( (descr = pcap_open_live(optarg, ETH_FRAME_MAX, 1, 100, errbuf)) == NULL){
+			if ((descr = pcap_open_live(optarg, ETH_FRAME_MAX, 1, 100, errbuf)) == NULL){
 				printf("Error: (): Interface: %s, %s %s %d.\n", optarg,errbuf,__FILE__,__LINE__);
 				exit(ERROR);
 			}
 			break;
 
 		case 'f' :
-			if(descr) { // comprobamos que no se ha abierto ninguna otra interfaz o fichero
+			if(descr) { /* Comprobamos que no se ha abierto ninguna otra interfaz o fichero */
 				printf("Ha seleccionado más de una fuente de datos\n");
 				pcap_close(descr);
 				exit(ERROR);
 			}
-			printf("Descomente el código para leer y abrir una traza pcap\n");
-			exit(ERROR);
 
 			if ((descr = pcap_open_offline(optarg, errbuf)) == NULL) {
 				printf("Error: pcap_open_offline(): File: %s, %s %s %d.\n", optarg, errbuf, __FILE__, __LINE__);
@@ -179,10 +177,13 @@ int main(int argc, char **argv)
 
 	//Simple comprobacion de la correcion de la lectura de parametros
 	printf("Filtro:");
-	//if(ipsrc_filter[0]!=0)
-	printf("ipsrc_filter:%"PRIu8".%"PRIu8".%"PRIu8".%"PRIu8"\t", ipsrc_filter[0], ipsrc_filter[1], ipsrc_filter[2], ipsrc_filter[3]);
-	//if(ipdst_filter[0]!=0)
-	printf("ipdst_filter:%"PRIu8".%"PRIu8".%"PRIu8".%"PRIu8"\t", ipdst_filter[0], ipdst_filter[1], ipdst_filter[2], ipdst_filter[3]);
+	if(ipsrc_filter[0]!=0 && ipsrc_filter[1]!=0 && ipsrc_filter[2]!=0 && ipsrc_filter[3]!=0){
+		printf("ipsrc_filter:%"PRIu8".%"PRIu8".%"PRIu8".%"PRIu8"\t", ipsrc_filter[0], ipsrc_filter[1], ipsrc_filter[2], ipsrc_filter[3]);
+	}
+	
+	if(ipdst_filter[0]!=0 && ipdst_filter[1]!=0 && ipdst_filter[2]!=0 && ipdst_filter[3]!=0){
+		printf("ipdst_filter:%"PRIu8".%"PRIu8".%"PRIu8".%"PRIu8"\t", ipdst_filter[0], ipdst_filter[1], ipdst_filter[2], ipdst_filter[3]);
+	}
 
 	if (sport_filter!= NO_FILTER) {
 		printf("po_filtro=%"PRIu16"\t", sport_filter);
@@ -218,7 +219,9 @@ void analizar_paquete(u_char *user,const struct pcap_pkthdr *hdr, const uint8_t 
 	(void)user;
 	const uint8_t *prev;
 	int i = 0;
-	int protocoloETH, headerLen, totalLen, posicion, protocoloIP, puertoOrigen, puertoDestino;
+	int protocoloETH, headerLen, totalLen, posicion, protocoloIP;
+	uint16_t puertoOrigen, puertoDestino;
+	uint8_t coincideIP;
 
 	contador++;
 	printf("Nuevo paquete capturado el %s", ctime((const time_t *) & (hdr->ts.tv_sec)));
@@ -276,20 +279,35 @@ void analizar_paquete(u_char *user,const struct pcap_pkthdr *hdr, const uint8_t 
 	printf("Protocolo nivel 4: %d\n", protocoloIP);
 	pack += 2 + 2; /*Saltamos checksum*/
 
-	printf("Direccion IP destino: ");
-	printf("%d", pack[0]);
-	for (i = 1; i < IP_ALEN; i++) {
-		printf(".%d", pack[i]);
-	}
-	printf("\n");
-	pack += 4;
-
+	coincideIP = 1;
 	printf("Direccion IP origen: ");
 	printf("%d", pack[0]);
 	for (i = 1; i < IP_ALEN; i++) {
 		printf(".%d", pack[i]);
+		coincideIP = coincideIP && (pack[i] == ipsrc_filter[i]);
 	}
+	
 	printf("\n");
+	if(!coincideIP){
+		printf("La IP origen no coincide con la del filtro. Acaba el análisis de este paquete.\n\n\n");
+		return;
+	}
+
+
+	pack += 4;
+	coincideIP = 1;
+	printf("Direccion IP destino: ");
+	printf("%d", pack[0]);
+	for (i = 1; i < IP_ALEN; i++) {
+		printf(".%d", pack[i]);
+		coincideIP = coincideIP && (pack[i] == ipdst_filter[i]);
+	}
+
+	printf("\n");
+	if(!coincideIP){
+		printf("La IP destino no coincide con la del filtro. Acaba el análisis de este paquete.\n\n\n");
+		return;
+	}
 
 	/*TODO Si posición != 0, no seguimos analizando*/
 	if(posicion != 0){
@@ -307,16 +325,28 @@ void analizar_paquete(u_char *user,const struct pcap_pkthdr *hdr, const uint8_t 
 	pack = prev + headerLen;
 	puertoOrigen = ntohs(*(uint16_t *)pack);
 	printf("Puerto origen: %d\n", puertoOrigen);
-	pack += 2;
 
+	if(sport_filter != NO_FILTER  && puertoOrigen != sport_filter){
+		printf("El puerto de origen no coincide con el del filtro. Acaba el análisis de este paquete.\n\n\n");
+		return;
+	}
+
+	pack += 2;
 	puertoDestino = ntohs(*(uint16_t *)pack);
 	printf("Puerto destino: %d\n", puertoDestino);
-	pack += 2;
 
+	if(dport_filter != NO_FILTER  && puertoDestino != dport_filter){
+		printf("El puerto de destino no coincide con el del filtro. Acaba el análisis de este paquete.\n\n\n");
+		return;
+	}
+
+	pack += 2;
 	if(protocoloIP == IP_UDP){
 		printf("Logitud UDP: %d\n", ntohs(*(uint16_t *)pack));
 	}else if(protocoloIP == IP_TCP){
-		/*TODO Banderas SYN y FIN*/
+		pack += 4+4+1; /*Cogemos solo el byte en el que estan las banderas*/
+		printf("Bandera SYN: %d\n", pack[0] & 2);
+		printf("Bandera FIN: %d\n", pack[0] & 1);
 	}
 
 	
