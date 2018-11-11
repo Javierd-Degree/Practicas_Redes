@@ -1,0 +1,14 @@
+Autores:
+	Javier Delgado del Cerro,
+	Javier López Cano
+
+Criterios de evaluación:
+	Normativa de entrega cumplida en su totalidad: Realizado: Se han realizado todos los requisitos la normativa de entrega explicados en el enunciado de la práctica.
+	Permitir leer de una interfaz o de un fichero: Realizado: según la entrada del programa abrimos una interfaz o un fichero indicados en dicha entrada. Solo abrimos uno de los dos, nunca ambos. 
+	Imprimir en formato hexadecimal los campos de nivel dos: Realizado: mostramos las direcciones ethernet separando los bytes con guiones, y el protocolo ethernet.
+	Comprobar que el protocolo que encapsula la cabecera ethernet es IPv4: Realizado: comprobamos que el código del protocolo corresponde a 0x0800 y en caso contrario finalizamos el análisis de la traza.
+	Imprimir en decimal los campos de nivel tres: Realizado: mostramos la versión IP, longitud de cabecera y total, el desplazamiento (multiplicando el valor por 8 como indica el protocolo IPv4), el tiempo de vida, el protocolo de nivel cuatro, y las direcciones IP origen y destino. 
+	Detener el análisis del nivel cuatro si la posición no es cero o el protocolo no es TCP ni UDP: Realizado: Al acabar el análisis del nivel tres, si el protocolo de nivel cuatro no es TCP ni UDP, o si la posición del paquete no es 0, finalizamos el análisis del paquete.
+	Imprimir en decimal los campos de nivel cuatro: Realizado: mostramos los puertos origen y destino, y en el caso de que el protocolo sea TCP mostramos las banderas SYN y FIN, si es UDP mostramos el campo longitud.
+	Permitir filtrar los paquetes por dirección IP y puertos: Realizado: Hacemos la detección de filtros en el momento en que se imprime por pantalla el valor, de forma que si el filtro no se cumple, justo después de imprimir por pantalla el valor acaba el análisis del paquete.
+	Comprobar el correcto funcionamiento del programa: Realizado: hemos usado tanto los archivos pcap proporcionados como trazas de paquetes recibidos a través de internet.
