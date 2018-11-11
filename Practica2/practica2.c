@@ -5,7 +5,7 @@
  Debe tener capacidad de dejar de analizar paquetes de acuerdo a un filtro.
 
  Compila: gcc -Wall -o practica2 practica2.c -lpcap, make
- Autor: Jose Luis Garcia Dorado, Jorge E. Lopez de Vergara Mendez, Rafael Leira, Javier Ramos
+ Autor: Javier Delgado del Cerro, Javier López Cano
  2018 EPS-UAM
 ***************************************************************************/
 
@@ -41,9 +41,8 @@
 #define BREAKLOOP -2
 #define NO_FILTER 0
 #define NO_LIMIT -1
+
 void analizar_paquete(u_char *user,const struct pcap_pkthdr *hdr, const uint8_t *pack);
-
-
 
 void handleSignal(int nsignal);
 
@@ -53,6 +52,9 @@ uint8_t ipsrc_filter[IP_ALEN] = {NO_FILTER};
 uint8_t ipdst_filter[IP_ALEN] = {NO_FILTER};
 uint16_t sport_filter = NO_FILTER;
 uint16_t dport_filter = NO_FILTER;
+
+uint8_t ipsrc_filter_ap = 0;
+uint8_t ipdst_filter_ap = 0;
 
 void handleSignal(int nsignal)
 {
@@ -177,13 +179,13 @@ int main(int argc, char **argv)
 
 	//Simple comprobacion de la correcion de la lectura de parametros
 	printf("Filtro:");
-	if(ipsrc_filter[0]!=0 && ipsrc_filter[1]!=0 && ipsrc_filter[2]!=0 && ipsrc_filter[3]!=0){
-		printf("ipsrc_filter:%"PRIu8".%"PRIu8".%"PRIu8".%"PRIu8"\t", ipsrc_filter[0], ipsrc_filter[1], ipsrc_filter[2], ipsrc_filter[3]);
-	}
-	
-	if(ipdst_filter[0]!=0 && ipdst_filter[1]!=0 && ipdst_filter[2]!=0 && ipdst_filter[3]!=0){
-		printf("ipdst_filter:%"PRIu8".%"PRIu8".%"PRIu8".%"PRIu8"\t", ipdst_filter[0], ipdst_filter[1], ipdst_filter[2], ipdst_filter[3]);
-	}
+	ipsrc_filter_ap = ipsrc_filter[0]!=0 && ipsrc_filter[1]!=0 && ipsrc_filter[2]!=0 && ipsrc_filter[3]!=0;
+	if(ipsrc_filter_ap)
+	printf("ipsrc_filter:%"PRIu8".%"PRIu8".%"PRIu8".%"PRIu8"\t", ipsrc_filter[0], ipsrc_filter[1], ipsrc_filter[2], ipsrc_filter[3]);
+
+	ipdst_filter_ap = ipdst_filter[0]!=0 && ipdst_filter[1]!=0 && ipdst_filter[2]!=0 && ipdst_filter[3]!=0;
+	if(ipdst_filter_ap)
+	printf("ipdst_filter:%"PRIu8".%"PRIu8".%"PRIu8".%"PRIu8"\t", ipdst_filter[0], ipdst_filter[1], ipdst_filter[2], ipdst_filter[3]);
 
 	if (sport_filter!= NO_FILTER) {
 		printf("po_filtro=%"PRIu16"\t", sport_filter);
@@ -247,7 +249,6 @@ void analizar_paquete(u_char *user,const struct pcap_pkthdr *hdr, const uint8_t 
 	printf("\n");
 	
 	pack+=ETH_ALEN;
-	//printf("Protocolo ETH: 0x%02X%02X\n", pack[0], pack[1]);
 	protocoloETH = ntohs(*(uint16_t *)pack);
 	printf("Protocolo ETH: 0x%04X\n", protocoloETH);
 
@@ -271,7 +272,7 @@ void analizar_paquete(u_char *user,const struct pcap_pkthdr *hdr, const uint8_t 
  	pack += 2 + 2; /*Saltamos identificación*/
  	
  	posicion = ntohs((*(uint16_t *)pack)) & 8191; /*Cogemos los 16 bits, y quitamos los 3 de flags*/
- 	printf("Posición/Desplazamiento: %d\n", posicion); /* TODO NO FUNCIONA. Multiplicamos por 8*/
+ 	printf("Posición/Desplazamiento: %d\n", posicion*8); /*Multiplicamos por 8 para obtener el desplazamiento real en bytes*/
 	pack += 2;
 
 	printf("Tiempo de vida: %d\n", pack[0]);
@@ -288,7 +289,7 @@ void analizar_paquete(u_char *user,const struct pcap_pkthdr *hdr, const uint8_t 
 	}
 	
 	printf("\n");
-	if(!coincideIP){
+	if(!coincideIP && ipsrc_filter_ap){
 		printf("La IP origen no coincide con la del filtro. Acaba el análisis de este paquete.\n\n\n");
 		return;
 	}
@@ -304,12 +305,12 @@ void analizar_paquete(u_char *user,const struct pcap_pkthdr *hdr, const uint8_t 
 	}
 
 	printf("\n");
-	if(!coincideIP){
+	if(!coincideIP && ipdst_filter_ap){
 		printf("La IP destino no coincide con la del filtro. Acaba el análisis de este paquete.\n\n\n");
 		return;
 	}
 
-	/*TODO Si posición != 0, no seguimos analizando*/
+	/*Si posición != 0, no seguimos analizando*/
 	if(posicion != 0){
 		printf("El paquete no tiene posición 0. Acaba el análisis de este paquete.\n\n\n");
 		return;
@@ -321,7 +322,7 @@ void analizar_paquete(u_char *user,const struct pcap_pkthdr *hdr, const uint8_t 
 	}
 
 	/*Campos de nivel 4*/
-	//Puertos de origen y destino
+	/*Puertos de origen y destino*/
 	pack = prev + headerLen;
 	puertoOrigen = ntohs(*(uint16_t *)pack);
 	printf("Puerto origen: %d\n", puertoOrigen);
