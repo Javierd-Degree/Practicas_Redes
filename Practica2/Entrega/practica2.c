@@ -346,7 +346,7 @@ void analizar_paquete(u_char *user,const struct pcap_pkthdr *hdr, const uint8_t 
 		printf("Logitud UDP: %d\n", ntohs(*(uint16_t *)pack));
 	}else if(protocoloIP == IP_TCP){
 		pack += 4+4+1; /*Cogemos solo el byte en el que estan las banderas*/
-		printf("Bandera SYN: %d\n", pack[0] & 2);
+		printf("Bandera SYN: %d\n", (pack[0] >> 1) & 1);
 		printf("Bandera FIN: %d\n", pack[0] & 1);
 	}
 
