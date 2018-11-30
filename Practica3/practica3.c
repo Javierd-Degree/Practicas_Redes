@@ -20,6 +20,7 @@ pcap_dumper_t * pdumper;//y salida a pcap
 uint64_t cont=0;	//Contador numero de mensajes enviados
 char interface[10];	//Interface donde transmitir por ejemplo "eth0"
 uint16_t ID=1;		//Identificador IP
+uint16_t nSecICMP=0;		//Numero de secuencia ICMP
 
 
 void handleSignal(int nsignal){
@@ -232,6 +233,7 @@ printf("Enviar(%"PRIu16") %s %d.\n",protocolo,__FILE__,__LINE__);
 uint8_t moduloICMP(uint8_t* mensaje, uint32_t longitud, uint16_t* pila_protocolos, void *parametros){
 	uint8_t segmento[ICMP_DATAGRAM_MAX]={0};
 	uint8_t aux8;
+	uint16_t aux16;
 	uint32_t pos=0;
 	uint8_t protocolo_inferior=pila_protocolos[1];
 	printf("modulo ICMP(%"PRIu16") %s %d.\n",protocolo_inferior,__FILE__,__LINE__);
@@ -239,11 +241,43 @@ uint8_t moduloICMP(uint8_t* mensaje, uint32_t longitud, uint16_t* pila_protocolo
 	aux8=PING_TIPO;
 	memcpy(segmento+pos,&aux8,sizeof(uint8_t));
 	pos+=sizeof(uint8_t);
-//TODO rellenar el resto de campos de ICMP, incluyendo el checksum tras haber rellenado todo el segmento, incluyendo el mensaje
-// El campo de identificador se puede asociar al pid, y el de secuencia puede ponerse a 1.
-//[....]
 
-//Se llama al protocolo definido de nivel inferior a traves de los punteros registrados en la tabla de protocolos registrados
+	aux8=PING_CODE;
+	memcpy(segmento+pos,&aux8,sizeof(uint8_t));
+	pos+=sizeof(uint8_t);
+
+	/*Checksum*/
+	aux16=htons(0);
+	memcpy(segmento+pos,&aux16,sizeof(uint16_t));
+	pos+=sizeof(uint16_t);
+
+	/*Identificador*/
+	aux16=htons(1);
+	memcpy(segmento+pos,&aux16,sizeof(uint16_t));
+	pos+=sizeof(uint16_t);
+
+	/*Numero de secuencia*/
+	aux16=htons(nSecICMP);
+	memcpy(segmento+pos,&aux16,sizeof(uint16_t));
+	pos+=sizeof(uint16_t);
+	nSecICMP+=1;
+
+	/*Datos*/
+	memcpy(segmento+pos,mensaje,sizeof(uint16_t)*longitud);
+
+	/*Calculamos el checksum*/
+	if(calcularChecksum(segmento, pos+longitud, &aux8) == ERROR){
+		printf("Error al calcular checksum ICMP\n");
+		return ERROR;
+	}
+
+	/*Guardamos el checksum y nos colocamos al final de la cabecera*/
+	pos-=6*sizeof(uint8_t);
+	aux16 = htons((uint16_t) aux8);
+	memcpy(segmento+pos,&aux16,sizeof(uint16_t)*longitud);
+	pos+=6*sizeof(uint8_t);
+
+	//Se llama al protocolo definido de nivel inferior a traves de los punteros registrados en la tabla de protocolos registrados
 	return protocolos_registrados[protocolo_inferior](segmento,longitud+pos,pila_protocolos,parametros);
 }
 
@@ -336,9 +370,25 @@ uint8_t moduloIP(uint8_t* segmento, uint32_t longitud, uint16_t* pila_protocolos
 	Parametros ipdatos=*((Parametros*)parametros);
 	uint8_t* IP_destino=ipdatos.IP_destino;
 
-//TODO
-//Llamar a solicitudARP(...) adecuadamente y usar ETH_destino de la estructura parametros
-//[...]
+	if(solicitudARP(interface, ipdatos.IP_destino, ipdatos.ETH_destino) == ERROR){
+		printf("Error en la solicitud ARP\n");
+		return ERROR
+	}
+
+	/*La version es IPv4 y la longitud son 20B, pues no incluimos opciones*/
+	aux8=0x45;
+	memcpy(segmento+pos,&aux8,sizeof(uint8_t));
+	pos+=sizeof(uint8_t);
+
+	/*Tipo servicio*/
+	aux8=0x45; /*TODO Cambiar el tipo servicio*/
+	memcpy(segmento+pos,&aux8,sizeof(uint8_t));
+	pos+=sizeof(uint8_t);
+
+	aux16=htons(puerto_origen);
+	memcpy(segmento+pos,&aux16,sizeof(uint16_t));
+	pos+=sizeof(uint16_t);
+
 //TODO A implementar el datagrama y fragmentación, asi como control de tamano segun bit DF
 //[...]
 //llamada/s a protocolo de nivel inferior [...]
