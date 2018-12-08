@@ -442,7 +442,6 @@ uint8_t moduloIP(uint8_t* segmento, uint32_t longitud, uint16_t* pila_protocolos
 		int longitudFrag;
 		
 		/*La version es IPv4 y la longitud son 20B, pues no incluimos opciones*/
-
 		aux8=0x45;
 		memcpy(datagrama+pos,&aux8,sizeof(uint8_t));
 		pos+=sizeof(uint8_t);

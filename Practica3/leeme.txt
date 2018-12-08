@@ -1,0 +1,15 @@
+Autores:
+	Javier Delgado del Cerro,
+	Javier López Cano
+
+Criterios de evaluación:
+	Normativa de entrega cumplida en su totalidad: Realizado: Se han realizado todos los requisitos la normativa de entrega explicados en el enunciado de la práctica.
+	Uso correcto del protocolo ARP: Realizado: comprobamos usando la máscara de red si el dispositivo destino se encuentra o no en la misma subred, y lanzamos el ARP Request a la ip destino o a la ip del router respectivamente.
+	ICMP y echo/ping dentro de la red local: Realizado: hemos comprobado con wireshark en el equipo emisor y el receptor dentro de la misa suubred el funcionamiento correcto.
+	ICMP y echo/ping en un equipo no adyacente: Realizado: mandamos un paquete ICMP al servidor de la UAM y recibimos respuesta, controlando el proceso con wireshark.
+	Formación correcta de un paquete UDP dentro de la red local: Realizado: formamos la cabecera UDP según las especificaciones dadas y con wireshark comprobamos su correcto funcionamiento.
+	Envío y Recepción de un paquete UDP en un equipo no adyacente (externo a la LAN): Realizado: de nuevo, enviamos un paquete simple con la cadena payload a un equipo externo a la subred y comprobamos que se recibe correctamente.
+	Envío y Recepción de paquetes UDP que hayan sufrido fragmentación: Realizado: enviamos paquetes fragmentados y comprobamos que se reciben correctamente, con el campo Posicion de IP adecuado y con las flags IP correspondientes.
+	Implementación del bit DF: Realizado: marcamos como 0 o 1 el bit DF en la cabecera IP y mostramos un error en caso de que se ejecute el programa con la bandera -d y el paquete necesite ser fragmentado.
+	Lectura de datos para paquetes UDP desde archivo: Realizado: Leemos el paquete hasta el final, o hasta que alcance la longitud máxima de datagrama IP dada en practica3.h.
+	Impresión de tramas enviadas por pantalla en hexadecimal: Realizado: Si se ejecuta el programa con la bandera -m se muestran por pantalla las tramas ethernet enviadas.
