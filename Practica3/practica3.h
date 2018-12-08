@@ -41,7 +41,7 @@
 #define IP_ALEN 4			// Tamano de direccion IP
 #define IP_HLEN 20			// Tamano de cabecera IP sin opciones
 #define IP_DATAGRAM_MAX 65535	// Tamano maximo datagrama IP 
-#define IP_PROTO 0x0800		// Identificador protocolo IP	
+#define IP_PROTO 4		// Identificador protocolo IP	
 #define IP_TYPE 0		//Tipo de servicio IP que asignamos a los paquetes
 
 #define UDP_HLEN 8			// Tamano de cabecera UDP	
