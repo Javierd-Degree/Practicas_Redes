@@ -114,6 +114,7 @@ int main(int argc, char **argv){
       					data[i] = c;
       					i++;
 					}
+					fclose(f);
 				}
 				flag_file = 1;
 				break;
@@ -231,10 +232,6 @@ printf("Enviar(%"PRIu16") %s %d.\n",protocolo,__FILE__,__LINE__);
 	}
 	return ERROR;
 }
-
-
-/***************************TODO Pila de protocolos a implementar************************************/
-
 
 /****************************************************************************************
  * Nombre: moduloICMP                                                                   *
@@ -447,7 +444,7 @@ uint8_t moduloIP(uint8_t* segmento, uint32_t longitud, uint16_t* pila_protocolos
 		pos+=sizeof(uint8_t);
 
 		/*Tipo servicio*/
-		aux8=IP_TYPE; /*TODO Cambiar el tipo servicio*/
+		aux8=IP_TYPE;
 		memcpy(datagrama+pos,&aux8,sizeof(uint8_t));
 		pos+=sizeof(uint8_t);
 
@@ -576,7 +573,6 @@ uint8_t moduloETH(uint8_t* datagrama, uint32_t longitud, uint16_t* pila_protocol
 	pos+=sizeof(uint8_t)*ETH_ALEN;
 
 	/*Tipo del protocolo inferior. En este caso solo puede ser IP*/
-	/*TODO MEJORAR, BUSCAR OTRA FORMA*/
 	if(protocolo_inferior==IP_PROTO){
 		protocolo_inferior = 0x0800;
 	}
